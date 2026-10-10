@@ -1,0 +1,929 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#C63A1F">
+<title>Nala Phone Level</title>
+<meta name="description" content="Quick planning survey of nala cross sections and L-sections using the phone tilt sensor, a tape and two poles.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: one-column field book (max 640px), sticky header with a ranging-rod stripe, big touch targets for use in sun */
+:root{
+  --paper:#EEF2F1; --card:#FFFFFF; --ink:#16232B; --ink-2:#51616B; --rule:#CCD5D8; --soft:#E3E9E9;
+  --rod:#C63A1F; --rod-ink:#FFFFFF;
+  --water:#2C78B0; --water-fill:rgba(44,120,176,.20);
+  --earth:#86643D; --earth-fill:rgba(134,100,61,.17);
+  --ok:#21794A; --warn:#A86A0C; --bad:#B42318;
+  --ui:"Barlow Semi Condensed","Roboto Condensed","Arial Narrow",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"Roboto Mono",Menlo,Consolas,monospace;
+  --r:10px;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0F1519; --card:#172027; --ink:#E4EBEE; --ink-2:#97A7B0; --rule:#2B3841; --soft:#1F2A31;
+    --rod:#EE5B3A; --rod-ink:#FFFFFF;
+    --water:#5BA6DC; --water-fill:rgba(91,166,220,.22);
+    --earth:#C99B68; --earth-fill:rgba(201,155,104,.16);
+    --ok:#4CC27F; --warn:#E0A43A; --bad:#F06C5E;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0F1519; --card:#172027; --ink:#E4EBEE; --ink-2:#97A7B0; --rule:#2B3841; --soft:#1F2A31;
+  --rod:#EE5B3A; --rod-ink:#FFFFFF;
+  --water:#5BA6DC; --water-fill:rgba(91,166,220,.22);
+  --earth:#C99B68; --earth-fill:rgba(201,155,104,.16);
+  --ok:#4CC27F; --warn:#E0A43A; --bad:#F06C5E;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{background:var(--paper);color:var(--ink)}
+body{margin:0;font:16px/1.42 var(--ui);-webkit-text-size-adjust:100%}
+body.noscroll{overflow:hidden}
+button,input,select,textarea{font:inherit;color:inherit}
+button{touch-action:manipulation;cursor:pointer}
+:focus-visible{outline:3px solid var(--water);outline-offset:2px}
+.mono,.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+/* header */
+.bar{position:sticky;top:0;z-index:20;background:var(--card);border-bottom:1px solid var(--rule);padding-top:env(safe-area-inset-top,0px)}
+.bar-in{max-width:640px;margin:0 auto;display:flex;align-items:center;gap:10px;padding:8px 16px;min-height:58px}
+.bar h1{font-size:20px;line-height:1.1;margin:0;font-weight:700;letter-spacing:.01em;text-wrap:balance}
+.bar .sub{font-size:13px;color:var(--ink-2);margin-top:2px}
+.bar .tt{min-width:0;flex:1}
+.bar .tt div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.back{width:44px;height:44px;border-radius:8px;border:1px solid var(--rule);background:var(--paper);display:grid;place-items:center;flex:none}
+.back svg{width:22px;height:22px;stroke:var(--ink);fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.rod{height:6px;background:repeating-linear-gradient(90deg,var(--rod) 0 26px,var(--card) 26px 52px)}
+
+main{max-width:640px;margin:0 auto;padding:16px 16px 110px;display:grid;gap:16px}
+main>*{min-width:0}
+h2{font-size:13px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-2);margin:6px 0 -6px;font-weight:600}
+p{margin:0}
+.lede{font-size:17px;max-width:62ch}
+.muted{color:var(--ink-2)}
+.small{font-size:14px}
+.card{background:var(--card);border:1px solid var(--rule);border-radius:var(--r);padding:14px;display:grid;gap:12px;min-width:0}
+.stack{display:grid;gap:10px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.row>.grow{flex:1 1 140px}
+.split{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+
+.btn{min-height:48px;padding:0 16px;border-radius:8px;border:1px solid var(--rule);background:var(--card);font-weight:600;font-size:16px;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-align:center}
+.btn:active{transform:translateY(1px)}
+.btn.pri{background:var(--rod);border-color:var(--rod);color:var(--rod-ink)}
+.btn.ink{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.btn.ghost{background:transparent}
+.btn.danger{color:var(--bad);border-color:var(--bad);background:transparent}
+.btn.wide{width:100%}
+.btn.sm{min-height:38px;font-size:14px;padding:0 12px}
+.btn[disabled]{opacity:.45;pointer-events:none}
+
+.item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;align-items:center;width:100%;text-align:left;background:var(--card);border:1px solid var(--rule);border-radius:var(--r);padding:12px 14px;min-height:60px}
+.item b{font-size:17px}
+.item .meta{grid-column:1;font-size:14px;color:var(--ink-2)}
+.item .go{grid-row:1/span 2;grid-column:2;color:var(--ink-2);font-size:22px}
+.tag{display:inline-block;font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;border-radius:5px;background:var(--soft);color:var(--ink-2);vertical-align:2px}
+.tag.rod{background:var(--rod);color:var(--rod-ink)}
+.tag.ok{background:transparent;border:1px solid var(--ok);color:var(--ok)}
+.tag.warn{background:transparent;border:1px solid var(--warn);color:var(--warn)}
+
+.note{border-left:4px solid var(--warn);background:var(--card);padding:10px 12px;border-radius:0 8px 8px 0;font-size:15px}
+.note.bad{border-color:var(--bad)}
+.note.ok{border-color:var(--ok)}
+
+/* key figures */
+.kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0;border:1px solid var(--rule);border-radius:var(--r);overflow:hidden;background:var(--card)}
+.kpi{padding:12px 14px;border-bottom:1px solid var(--rule);min-width:0}
+.kpi:nth-child(odd){border-right:1px solid var(--rule)}
+.kpi:nth-last-child(-n+2):nth-child(odd),.kpi:last-child{border-bottom:0}
+.kpi .k{font-size:12px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-2);font-weight:600}
+.kpi .v{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:26px;font-weight:600;line-height:1.15;margin-top:2px}
+.kpi .v small{font-size:13px;font-weight:400;color:var(--ink-2)}
+.kpi.lead .v{color:var(--rod)}
+
+/* tables */
+.tw{overflow-x:auto;border:1px solid var(--rule);border-radius:var(--r);background:var(--card)}
+table.t{width:100%;border-collapse:collapse;font-size:14px;min-width:340px}
+.t th{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);text-align:right;padding:8px 8px;border-bottom:1px solid var(--rule);font-weight:600;white-space:nowrap}
+.t td{padding:10px 8px;border-bottom:1px solid var(--soft);text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.t th:first-child,.t td:first-child{text-align:left;font-family:var(--ui);white-space:normal}
+.t tr:last-child td{border-bottom:0}
+.t tr[data-a]{cursor:pointer}
+.t tr[data-a]:active td{background:var(--soft)}
+.t td .pm{color:var(--ink-2);font-size:12px}
+
+/* forms */
+.fld{display:grid;gap:4px;min-width:0}
+.fld>span{font-size:13px;color:var(--ink-2);font-weight:600;letter-spacing:.02em}
+.fld input,.fld select,.fld textarea{width:100%;min-height:48px;padding:8px 12px;border:1px solid var(--rule);border-radius:8px;background:var(--paper);font-size:17px}
+.fld textarea{min-height:70px;resize:vertical}
+.fld input.mono{font-family:var(--mono)}
+.seg{display:flex;border:1px solid var(--rule);border-radius:8px;overflow:hidden;background:var(--paper)}
+.seg button{flex:1;min-height:44px;border:0;background:transparent;font-weight:600;font-size:15px;padding:0 8px}
+.seg button+button{border-left:1px solid var(--rule)}
+.seg button.on{background:var(--ink);color:var(--paper)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{min-height:38px;padding:0 12px;border-radius:19px;border:1px solid var(--rule);background:var(--paper);font-weight:500;font-size:15px}
+.chip.on{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.check{display:flex;gap:10px;align-items:center;min-height:44px;font-size:16px}
+.check input{width:22px;height:22px;accent-color:var(--rod)}
+
+.angbox{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;border:1px solid var(--rule);border-radius:var(--r);padding:12px;background:var(--paper)}
+.angbox .big{font-family:var(--mono);font-size:34px;font-weight:600;line-height:1}
+.angbox .sm{font-size:13px;color:var(--ink-2);margin-top:4px}
+.preview{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;text-align:center}
+.preview div{background:var(--paper);border-radius:8px;padding:8px 4px}
+.preview .k{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2)}
+.preview .v{font-family:var(--mono);font-weight:600;font-size:17px}
+
+.plot{background:var(--card);border:1px solid var(--rule);border-radius:var(--r);padding:6px 4px 2px;overflow:hidden}
+.plot svg{display:block;width:100%;height:auto}
+.plotcap{font-size:13px;color:var(--ink-2);padding:0 8px 6px}
+
+.setup{display:flex;gap:10px;align-items:center;background:var(--ink);color:var(--paper);border-radius:var(--r);padding:10px 12px}
+.setup svg{flex:none;width:22px;height:26px}
+.setup .tx{flex:1;min-width:0;font-size:15px}
+.setup select{max-width:48%;min-height:40px;border-radius:8px;border:0;padding:0 8px;background:var(--paper);color:var(--ink);font-size:15px}
+
+.foot{font-size:13px;color:var(--ink-2);border-top:1px solid var(--rule);padding-top:12px;margin-top:8px}
+.steps{margin:0;padding-left:22px;display:grid;gap:8px}
+.steps li{padding-left:4px}
+.acc td:nth-child(2),.acc td:nth-child(3){text-align:right}
+
+/* sight overlay: single dark look on purpose (camera view) */
+#sight{position:fixed;inset:0;z-index:50;background:#05090B;color:#F3F6F7;display:flex;flex-direction:column;overscroll-behavior:contain}
+#sight .view{position:relative;flex:1;overflow:hidden;min-height:0}
+#cam{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform-origin:50% 50%}
+#nocam{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:24px;font-size:17px;color:#C9D3D8;line-height:1.5}
+.xh{position:absolute;left:50%;top:50%;width:0;height:0;pointer-events:none}
+.xh i{position:absolute;background:#FF3B1F;box-shadow:0 0 0 1px rgba(255,255,255,.75)}
+.xh .h{left:-46vw;width:92vw;top:-1px;height:2px}
+.xh .v{top:-30vh;height:60vh;left:-1px;width:2px}
+.xh b{position:absolute;left:-18px;top:-18px;width:36px;height:36px;border:2px solid #FF3B1F;border-radius:50%;box-shadow:0 0 0 1px rgba(255,255,255,.7)}
+.s-top{position:absolute;left:0;right:0;top:0;padding:calc(env(safe-area-inset-top,0px) + 10px) 14px 10px;display:flex;gap:8px;align-items:flex-start;background:linear-gradient(#05090Bdd,#05090B00)}
+.s-top .hint{flex:1;font-size:15px;font-weight:600}
+.s-top button{min-height:38px;border-radius:8px;border:1px solid #6B7A82;background:#0E161Acc;color:#F3F6F7;padding:0 10px;font-size:14px;font-weight:600}
+.s-zoom{position:absolute;right:12px;bottom:12px;display:flex;flex-direction:column;gap:6px}
+.s-zoom button{width:46px;height:40px;border-radius:8px;border:1px solid #6B7A82;background:#0E161Acc;color:#F3F6F7;font-weight:700}
+.s-zoom button.on{background:#F3F6F7;color:#05090B}
+.s-bot{padding:12px 16px calc(env(safe-area-inset-bottom,0px) + 14px);background:#0B1215;display:grid;gap:10px;border-top:3px solid #FF3B1F}
+.s-ang{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap}
+#sAng{font-family:var(--mono);font-size:46px;font-weight:600;line-height:1;font-variant-numeric:tabular-nums}
+#sRaw{font-family:var(--mono);font-size:12px;color:#9FB0B8}
+.stab{height:8px;border-radius:4px;background:#26323A;overflow:hidden}
+.stab i{display:block;height:100%;width:0;background:#4CC27F;transition:width .15s}
+.stabtx{font-size:13px;color:#9FB0B8;display:flex;justify-content:space-between;gap:8px}
+#sMsg{font-size:14px;color:#F3B25E}
+.s-act{display:grid;grid-template-columns:1fr 2fr;gap:10px}
+.s-act button{min-height:56px;border-radius:10px;font-size:18px;font-weight:700;border:1px solid #6B7A82;background:transparent;color:#F3F6F7}
+.s-act .read{background:#FF3B1F;border-color:#FF3B1F;color:#fff}
+#sRes{display:grid;gap:8px;background:#16222A;border-radius:10px;padding:12px}
+#sRes .big{font-family:var(--mono);font-size:30px;font-weight:600}
+
+/* GPS sheet */
+#sheet{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--card);border-top:3px solid var(--water);padding:14px 16px calc(env(safe-area-inset-bottom,0px) + 14px);box-shadow:0 -8px 24px rgba(0,0,0,.18)}
+#sheet .in{max-width:640px;margin:0 auto;display:grid;gap:10px}
+#toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 20px);transform:translateX(-50%);z-index:60;background:var(--ink);color:var(--paper);padding:10px 16px;border-radius:8px;font-size:15px;max-width:calc(100% - 32px);opacity:0;pointer-events:none;transition:opacity .2s}
+#toast.on{opacity:1}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<header class="bar">
+  <div class="bar-in">
+    <button class="back" id="hBack" data-a="back" aria-label="Back" hidden><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <div class="tt"><h1 id="hTitle">Nala Phone Level</h1><div class="sub" id="hSub"></div></div>
+  </div>
+  <div class="rod"></div>
+</header>
+<main id="app"></main>
+
+<div id="sight" hidden>
+  <div class="view">
+    <video id="cam" playsinline muted autoplay></video>
+    <div id="nocam" hidden></div>
+    <div class="xh" id="xh"><i class="h"></i><i class="v"></i><b></b></div>
+    <div class="s-top"><div class="hint" id="sHint"></div><button id="sMode" data-a="s-mode">Top edge</button></div>
+    <div class="s-zoom" id="sZoom"><button data-a="zoom" data-z="1" class="on">1×</button><button data-a="zoom" data-z="2">2×</button><button data-a="zoom" data-z="4">4×</button></div>
+  </div>
+  <div class="s-bot">
+    <div class="s-ang"><span id="sAng">--.--°</span><span id="sRaw"></span></div>
+    <div class="stab"><i id="sStab"></i></div>
+    <div class="stabtx"><span id="sStabTx">Waiting for tilt sensor…</span><span>steady &lt; 0.05°</span></div>
+    <div id="sMsg"></div>
+    <div id="sRes" hidden></div>
+    <div class="s-act" id="sAct"><button data-a="s-cancel">Cancel</button><button class="read" id="sRead" data-a="s-read">Read angle</button></div>
+  </div>
+</div>
+<div id="sheet" hidden></div>
+<div id="toast" role="status" aria-live="polite"></div>
+<input type="file" id="impFile" accept=".json,application/json" hidden>
+
+<script>
+'use strict';
+/* Nala Phone Level — quick planning survey of nala cross sections and L-sections.
+   Jitendra Sonawane, Agriculture Engineer, 7720045808 */
+const KEY='nalaPhoneLevel.v1', D2R=Math.PI/180, R2D=180/Math.PI;
+const $=s=>document.querySelector(s);
+const uid=()=>Math.random().toString(36).slice(2,9);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const f=(v,d=2)=>Number.isFinite(v)?v.toFixed(d):'–';
+const clamp1=v=>Math.max(-1,Math.min(1,v));
+const today=()=>{const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*6e4).toISOString().slice(0,10)};
+const mean=a=>a.reduce((s,v)=>s+v,0)/a.length;
+const std=a=>{if(a.length<2)return 0;const m=mean(a);return Math.sqrt(a.reduce((s,v)=>s+(v-m)**2,0)/(a.length-1))};
+const fmtAng=v=>Number.isFinite(v)?(v>=0?'+':'−')+Math.abs(v).toFixed(2)+'°':'--.--°';
+const cm=v=>Number.isFinite(v)?'±'+Math.max(1,Math.round(v*100))+' cm':'';
+const num=v=>{const x=parseFloat(String(v).replace(',','.').replace('−','-'));return Number.isFinite(x)?x:NaN};
+
+const CS_LABELS=['LB peg','LB top','LB toe','Bed','Deepest bed','RB toe','RB top','RB peg','HFL mark','Field','Other'];
+const LS_LABELS=['Bed','Pool','Drop','Proposed site','Other'];
+
+/* ---------- data ---------- */
+function mkPt(o){return Object.assign({id:uid(),label:'Point',st:null,d:0,mode:'h',dir:1,ang:0,raw:null,cal:0,sd:null,n:0,hi:1.5,ht:1.5,gps:null,note:''},o)}
+function example(){
+  const s={id:uid(),example:true,village:'Example village',nala:'Sample nala',place:'Practice data. Delete it when you start real work.',surveyor:'',date:today(),notes:'',lines:[]};
+  const cs=(name,ch,data)=>{const p0=mkPt({label:'LB peg',start:true});const pts=[p0];
+    data.forEach(([lab,d,a])=>pts.push(mkPt({label:lab,st:p0.id,d,ang:a,raw:a,sd:0.06,n:58})));
+    return {id:uid(),type:'CS',name,ch,startRL:100,tie:true,hi:1.5,setup:p0.id,gps:null,pts}};
+  s.lines.push(cs('CS-1',0,[['LB top',2.0,-2.86],['LB toe',4.5,-23.0],['Bed',6.0,-19.6],['Deepest bed',8.0,-15.9],['Bed',10.0,-12.4],['RB toe',11.5,-9.6],['RB top',14.0,-1.5],['Field',17.0,-0.9]]));
+  s.lines.push(cs('CS-2',50,[['LB top',1.5,-3.0],['LB toe',4.0,-26.0],['Bed',6.0,-20.5],['Deepest bed',7.5,-17.8],['Bed',9.5,-13.6],['RB toe',11.0,-10.0],['RB top',13.0,-2.5],['HFL mark',12.5,-4.8],['Field',16.0,-1.0]]));
+  s.lines.push(cs('CS-3',100,[['LB top',2.0,-2.0],['LB toe',5.0,-21.0],['Bed',7.0,-18.4],['Deepest bed',9.0,-15.0],['Bed',11.0,-11.8],['RB toe',12.5,-8.8],['RB top',15.0,-0.5],['Field',18.0,-0.3]]));
+  const l0=mkPt({label:'Bed',start:true});const lp=[l0];let prev=l0;
+  [[25,-1.6],[25,-1.2],[25,-1.5],[25,-0.9]].forEach(([d,a])=>{const p=mkPt({label:'Bed',st:prev.id,d,ang:a,raw:a,sd:0.07,n:60});lp.push(p);prev=p});
+  s.lines.push({id:uid(),type:'LS',name:'L-section',ch:0,startRL:100,tie:false,hi:1.5,setup:prev.id,gps:null,pts:lp});
+  return s;
+}
+function fresh(){return {settings:{hi:1.5,mode:'cam',cal:{cam:0,edge:0},calDate:{cam:null,edge:null},calLog:[],sigma:0.15},surveys:[example()],stack:[{v:'home'}]}}
+function load(){try{const t=localStorage.getItem(KEY);if(t){const o=JSON.parse(t);if(o&&o.surveys&&o.settings)return o}}catch(e){}return fresh()}
+let S=load();
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){toast('Could not save on this phone. Export a backup now.')}}
+const getS=id=>S.surveys.find(x=>x.id===id);
+
+/* ---------- survey maths ---------- */
+// RL(target) = RL(instrument point) + hi + D·tanθ − ht   (horizontal tape)
+// RL(target) = RL(instrument point) + hi + S·sinθ − ht   (tape along slope; D = S·cosθ)
+function compute(line){
+  const by={};line.pts.forEach(p=>by[p.id]=p);
+  const out={};const sig0=S.settings.sigma;
+  function calc(p,g){
+    if(out[p.id])return out[p.id];
+    if(p.start)return out[p.id]={off:0,rl:line.startRL,sig:0};
+    const st=by[p.st];
+    if(!st||g>400)return out[p.id]={off:NaN,rl:NaN,sig:NaN};
+    const s=calc(st,g+1);const th=p.ang*D2R;
+    let dh,dv;
+    if(p.mode==='s'){dh=p.d*Math.cos(th);dv=p.d*Math.sin(th)}else{dh=p.d;dv=p.d*Math.tan(th)}
+    const sa=Math.sqrt((p.sd||0)**2+sig0**2)*D2R;
+    const sv=p.mode==='s'?p.d*Math.cos(th)*sa:p.d*sa/Math.cos(th)**2;
+    return out[p.id]={off:s.off+dh*(p.dir||1),rl:s.rl+dv+(+p.hi)-(+p.ht),sig:Math.hypot(s.sig,sv),dh,dv};
+  }
+  line.pts.forEach(p=>calc(p,0));
+  return out;
+}
+const zAt=(a,b,x)=>b.off===a.off?Math.min(a.rl,b.rl):a.rl+(x-a.off)/(b.off-a.off)*(b.rl-a.rl);
+function analyzeCS(rows){
+  if(rows.length<3)return null;
+  let b=0;rows.forEach((r,i)=>{if(r.rl<rows[b].rl)b=i});
+  const bed=rows[b];
+  const pick=(side,lab)=>{const c=side<0?rows.slice(0,b):rows.slice(b+1);if(!c.length)return null;
+    const named=c.filter(r=>r.p.label===lab);const pool=named.length?named:c;return pool.reduce((m,r)=>r.rl>m.rl?r:m)};
+  const lb=pick(-1,'LB top'),rb=pick(1,'RB top');
+  const hfl=rows.find(r=>r.p.label==='HFL mark')||null;
+  const A={bed,lb,rb,hfl,bf:null,xl:null,xr:null,tw:null,area:null};
+  if(lb){A.lbH=lb.rl-bed.rl;A.lbS=Math.hypot(lb.sig,bed.sig)}
+  if(rb){A.rbH=rb.rl-bed.rl;A.rbS=Math.hypot(rb.sig,bed.sig)}
+  if(hfl){A.hflH=hfl.rl-bed.rl;A.hflS=Math.hypot(hfl.sig,bed.sig)}
+  if(lb&&rb){
+    const bf=Math.min(lb.rl,rb.rl);A.bf=bf;A.lowH=bf-bed.rl;A.lowS=lb.rl<rb.rl?A.lbS:A.rbS;
+    let xl=rows[0].off,xr=rows[rows.length-1].off;
+    for(let i=b;i>0;i--){if(rows[i-1].rl>=bf){const r1=rows[i-1],r2=rows[i];const t=(bf-r2.rl)/((r1.rl-r2.rl)||1);xl=r2.off+t*(r1.off-r2.off);break}}
+    for(let i=b;i<rows.length-1;i++){if(rows[i+1].rl>=bf){const r1=rows[i],r2=rows[i+1];const t=(bf-r1.rl)/((r2.rl-r1.rl)||1);xr=r1.off+t*(r2.off-r1.off);break}}
+    let area=0;
+    for(let i=0;i<rows.length-1;i++){const x1=Math.max(rows[i].off,xl),x2=Math.min(rows[i+1].off,xr);if(x2<=x1)continue;
+      const N=24;for(let k=0;k<N;k++){const xa=x1+(x2-x1)*k/N,xb=x1+(x2-x1)*(k+1)/N;
+        area+=(Math.max(0,bf-zAt(rows[i],rows[i+1],xa))+Math.max(0,bf-zAt(rows[i],rows[i+1],xb)))/2*(xb-xa)}}
+    Object.assign(A,{xl,xr,tw:xr-xl,area});
+  }
+  return A;
+}
+function analyzeLS(rows,line){
+  if(rows.length<2)return null;
+  const a=rows[0],z=rows[rows.length-1];const L=z.off-a.off;const fall=a.rl-z.rl;
+  let steep=null;
+  for(let i=0;i<rows.length-1;i++){const dx=rows[i+1].off-rows[i].off;if(dx<=0)continue;const s=(rows[i].rl-rows[i+1].rl)/dx*100;
+    if(!steep||Math.abs(s)>Math.abs(steep.s))steep={s,from:line.ch+rows[i].off,to:line.ch+rows[i+1].off}}
+  return {L,fall,slope:L>0?fall/L*100:NaN,steep,fallS:Math.hypot(a.sig,z.sig)};
+}
+function lsProfile(s){
+  const ls=s.lines.find(l=>l.type==='LS'&&l.pts.length>=2);if(!ls)return null;
+  const c=compute(ls);
+  const pts=ls.pts.map(p=>({ch:ls.ch+c[p.id].off,rl:c[p.id].rl})).filter(q=>Number.isFinite(q.rl)).sort((a,b)=>a.ch-b.ch);
+  return pts.length>=2?{ls,pts}:null;
+}
+function interp(pts,ch){
+  if(ch<pts[0].ch-1e-6||ch>pts[pts.length-1].ch+1e-6)return null;
+  for(let i=0;i<pts.length-1;i++){if(ch<=pts[i+1].ch+1e-9){const dx=pts[i+1].ch-pts[i].ch;const t=dx?(ch-pts[i].ch)/dx:0;return pts[i].rl+t*(pts[i+1].rl-pts[i].rl)}}
+  return pts[pts.length-1].rl;
+}
+function lineResults(s,line){
+  const c=compute(line);
+  let rows=line.pts.map(p=>Object.assign({p},c[p.id])).filter(r=>Number.isFinite(r.rl)).sort((a,b)=>a.off-b.off||a.rl-b.rl);
+  if(line.type!=='CS')return {rows,a:analyzeLS(rows,line),tied:false,tie:null,shift:0};
+  let shift=0,tie=null,tied=false;const a0=analyzeCS(rows);
+  if(line.tie){const pr=lsProfile(s);
+    if(!pr)tie='No L-section yet, so this section uses its own datum (RL '+f(line.startRL,3)+' at the start point).';
+    else if(!a0)tie=null;
+    else{const v=interp(pr.pts,line.ch);
+      if(v==null)tie='Chainage '+f(line.ch,1)+' m is outside the L-section, so this section uses its own datum.';
+      else{shift=v-a0.bed.rl;tied=true;tie='Bed level taken from '+pr.ls.name+' at ch '+f(line.ch,1)+' m.'}}}
+  if(shift)rows=rows.map(r=>Object.assign({},r,{rl:r.rl+shift}));
+  return {rows,a:analyzeCS(rows),shift,tie,tied};
+}
+function summary(s){return s.lines.filter(l=>l.type==='CS').sort((a,b)=>a.ch-b.ch).map(l=>{const r=lineResults(s,l);return {l,r,a:r.a}})}
+
+/* ---------- plots (SVG) ---------- */
+const VAR={ink:'var(--ink)',ink2:'var(--ink-2)',rule:'var(--rule)',soft:'var(--soft)',card:'var(--card)',earth:'var(--earth)',earthF:'var(--earth-fill)',water:'var(--water)',waterF:'var(--water-fill)',rod:'var(--rod)',warn:'var(--warn)',ui:'var(--ui)',mono:'var(--mono)'};
+const LIGHT={ink:'#16232B',ink2:'#51616B',rule:'#CCD5D8',soft:'#E3E9E9',card:'#FFFFFF',earth:'#86643D',earthF:'rgba(134,100,61,.17)',water:'#2C78B0',waterF:'rgba(44,120,176,.20)',rod:'#C63A1F',warn:'#A86A0C',ui:'Arial Narrow,Arial,sans-serif',mono:'Consolas,Menlo,monospace'};
+function svgCss(P){return `<style>.g{stroke:${P.soft};stroke-width:1}.ax{stroke:${P.rule};stroke-width:1}.tx{fill:${P.ink2};font:10.5px ${P.mono}}.lb{fill:${P.ink};font:600 11.5px ${P.ui}}.lbm{fill:${P.ink2};font:11px ${P.ui}}.gr{fill:none;stroke:${P.earth};stroke-width:2.2;stroke-linejoin:round}.ef{fill:${P.earthF}}.wf{fill:${P.waterF}}.bf{stroke:${P.water};stroke-width:1.6;stroke-dasharray:6 4}.wl{fill:none;stroke:${P.water};stroke-width:2.4}.dm{stroke:${P.ink};stroke-width:1.4}.dmt{fill:${P.ink};font:600 12px ${P.mono}}.pt{fill:${P.card};stroke:${P.ink};stroke-width:1.4}.st{fill:${P.rod}}.hf{stroke:${P.warn};stroke-width:1.6;stroke-dasharray:2 3}.hft{fill:${P.warn};font:600 11px ${P.ui}}.bl{stroke:${P.ink2};stroke-width:1;stroke-dasharray:3 3}.lbl{fill:none;stroke:${P.earth};stroke-width:2;stroke-dasharray:7 4}.rbl{fill:none;stroke:${P.ink};stroke-width:2;stroke-dasharray:2 3}.bar1{fill:${P.earth}}.bar2{fill:${P.ink2}}.ttl{fill:${P.ink};font:700 14px ${P.ui}}.bg{fill:${P.card}}</style>`}
+function nice(min,max,n){const span=(max-min)||1;const s0=span/n;const mag=10**Math.floor(Math.log10(s0));const r=s0/mag;const step=(r<1.5?1:r<3?2:r<7?5:10)*mag;const t=[];for(let v=Math.ceil(min/step-1e-9)*step;v<=max+1e-9;v+=step)t.push(+v.toFixed(6));return {t,step}}
+const dec=step=>step>=1?0:step>=0.1?1:2;
+function svgWrap(W,H,P,title,body){
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" role="img">${svgCss(P)}${title?`<rect class="bg" x="0" y="0" width="${W}" height="${H}"/><text class="ttl" x="10" y="20">${esc(title)}</text>`:''}${body}</svg>`;
+}
+function frame(x0,x1,y0,y1,W,H,m,xl,yl){
+  const X=v=>m.l+(v-x0)/(x1-x0)*(W-m.l-m.r),Y=v=>H-m.b-(v-y0)/(y1-y0)*(H-m.t-m.b);
+  const tx=nice(x0,x1,5),ty=nice(y0,y1,4);let g='';
+  ty.t.forEach(v=>{g+=`<line class="g" x1="${m.l}" x2="${W-m.r}" y1="${Y(v)}" y2="${Y(v)}"/><text class="tx" x="${m.l-5}" y="${Y(v)+3.5}" text-anchor="end">${v.toFixed(dec(ty.step))}</text>`});
+  tx.t.forEach(v=>{g+=`<line class="g" y1="${m.t}" y2="${H-m.b}" x1="${X(v)}" x2="${X(v)}"/><text class="tx" x="${X(v)}" y="${H-m.b+14}" text-anchor="middle">${v.toFixed(dec(tx.step))}</text>`});
+  g+=`<line class="ax" x1="${m.l}" x2="${W-m.r}" y1="${H-m.b}" y2="${H-m.b}"/><line class="ax" x1="${m.l}" x2="${m.l}" y1="${m.t}" y2="${H-m.b}"/>`;
+  g+=`<text class="lbm" x="${(m.l+W-m.r)/2}" y="${H-4}" text-anchor="middle">${xl}</text><text class="lbm" transform="translate(11 ${(m.t+H-m.b)/2}) rotate(-90)" text-anchor="middle">${yl}</text>`;
+  return {X,Y,g};
+}
+function plotCS(res,P,title){
+  const rows=res.rows,a=res.a,W=420,H=title?300:268,m={l:46,r:14,t:title?40:16,b:34};
+  if(rows.length<2)return '';
+  let x0=Math.min(...rows.map(r=>r.off)),x1=Math.max(...rows.map(r=>r.off));
+  let y0=Math.min(...rows.map(r=>r.rl)),y1=Math.max(...rows.map(r=>r.rl));
+  const px=Math.max(0.5,(x1-x0)*0.04),py=Math.max(0.2,(y1-y0)*0.14);x0-=px;x1+=px;y0-=py;y1+=py*1.3;
+  const {X,Y,g}=frame(x0,x1,y0,y1,W,H,m,'Offset from start point (m)','RL (m)');
+  let b=g;
+  const gp=rows.map(r=>`${X(r.off).toFixed(1)},${Y(r.rl).toFixed(1)}`).join(' ');
+  b+=`<polygon class="ef" points="${X(rows[0].off)},${Y(y0)} ${gp} ${X(rows[rows.length-1].off)},${Y(y0)}"/>`;
+  if(a&&a.bf!=null){
+    const inside=rows.filter(r=>r.off>a.xl&&r.off<a.xr).map(r=>`${X(r.off).toFixed(1)},${Y(Math.min(r.rl,a.bf)).toFixed(1)}`).join(' ');
+    b+=`<polygon class="wf" points="${X(a.xl)},${Y(a.bf)} ${inside} ${X(a.xr)},${Y(a.bf)}"/>`;
+    b+=`<line class="bf" x1="${X(a.xl)}" x2="${X(a.xr)}" y1="${Y(a.bf)}" y2="${Y(a.bf)}"/>`;
+  }
+  if(a)b+=`<line class="bl" x1="${m.l}" x2="${W-m.r}" y1="${Y(a.bed.rl)}" y2="${Y(a.bed.rl)}"/>`;
+  if(a&&a.hfl)b+=`<line class="hf" x1="${m.l}" x2="${W-m.r}" y1="${Y(a.hfl.rl)}" y2="${Y(a.hfl.rl)}"/><text class="hft" x="${W-m.r-4}" y="${Y(a.hfl.rl)-4}" text-anchor="end">HFL ${f(a.hflH)} m</text>`;
+  b+=`<polyline class="gr" points="${gp}"/>`;
+  const stIds=new Set(res.rows.map(r=>r.p.st).filter(Boolean));
+  rows.forEach(r=>{const x=X(r.off),y=Y(r.rl);
+    if(r.p.start||stIds.has(r.p.id))b+=`<path class="st" d="M${x} ${y-1}l-5 -9h10z"/>`;
+    b+=`<circle class="pt" cx="${x}" cy="${y}" r="3.2"/>`});
+  const dim=(r,h,side)=>{const x=X(r.off)+(side<0?-0:0),yb=Y(a.bed.rl),yt=Y(r.rl);
+    const tx=side<0?x+7:x-7,anc=side<0?'start':'end';
+    return `<line class="dm" x1="${x}" x2="${x}" y1="${yb}" y2="${yt}"/><line class="dm" x1="${x-4}" x2="${x+4}" y1="${yb}" y2="${yb}"/><line class="dm" x1="${x-4}" x2="${x+4}" y1="${yt}" y2="${yt}"/><text class="dmt" x="${tx}" y="${(yb+yt)/2+4}" text-anchor="${anc}">${f(h)} m</text>`};
+  if(a&&a.lb)b+=dim(a.lb,a.lbH,-1);
+  if(a&&a.rb)b+=dim(a.rb,a.rbH,1);
+  if(a){const x=X(a.bed.off),y=Y(a.bed.rl);b+=`<text class="lb" x="${x}" y="${Math.min(y+16,H-m.b-4)}" text-anchor="middle">Bed ${f(a.bed.rl,2)}</text>`}
+  if(a&&a.lb)b+=`<text class="lbm" x="${X(a.lb.off)+2}" y="${Y(a.lb.rl)-12}" text-anchor="start">LB</text>`;
+  if(a&&a.rb)b+=`<text class="lbm" x="${X(a.rb.off)-2}" y="${Y(a.rb.rl)-12}" text-anchor="end">RB</text>`;
+  return svgWrap(W,H,P,title,b);
+}
+function veText(res){const r=res.rows;if(r.length<2)return '';const xs=r.map(q=>q.off),ys=r.map(q=>q.rl);const dx=Math.max(...xs)-Math.min(...xs),dy=Math.max(...ys)-Math.min(...ys);if(!(dx>0&&dy>0))return '';
+  const ve=(dx/(420-60))/(dy/(268-50))*1;return ve>1.2?`Vertical scale exaggerated about ${Math.round(ve)}×`:''}
+function plotLS(s,P,title){
+  const pr=lsProfile(s);if(!pr)return '';
+  const W=420,H=title?300:268,m={l:46,r:14,t:title?56:34,b:34};
+  const sm=summary(s).filter(q=>q.r.tied&&q.a);
+  const lbs=sm.filter(q=>q.a.lb).map(q=>({ch:q.l.ch,rl:q.a.lb.rl,n:q.l.name})),rbs=sm.filter(q=>q.a.rb).map(q=>({ch:q.l.ch,rl:q.a.rb.rl}));
+  const all=pr.pts.concat(lbs,rbs);
+  let x0=Math.min(...all.map(p=>p.ch)),x1=Math.max(...all.map(p=>p.ch)),y0=Math.min(...all.map(p=>p.rl)),y1=Math.max(...all.map(p=>p.rl));
+  const px=Math.max(1,(x1-x0)*0.03),py=Math.max(0.2,(y1-y0)*0.12);x0-=px;x1+=px;y0-=py;y1+=py;
+  const {X,Y,g}=frame(x0,x1,y0,y1,W,H,m,'Chainage along nala (m)','RL (m)');
+  let b=g;const ln=a=>a.map(p=>`${X(p.ch).toFixed(1)},${Y(p.rl).toFixed(1)}`).join(' ');
+  b+=`<polygon class="ef" points="${X(pr.pts[0].ch)},${Y(y0)} ${ln(pr.pts)} ${X(pr.pts[pr.pts.length-1].ch)},${Y(y0)}"/>`;
+  b+=`<polyline class="wl" points="${ln(pr.pts)}"/>`;
+  pr.pts.forEach(p=>b+=`<circle class="pt" cx="${X(p.ch)}" cy="${Y(p.rl)}" r="3"/>`);
+  if(lbs.length>1)b+=`<polyline class="lbl" points="${ln(lbs)}"/>`;
+  if(rbs.length>1)b+=`<polyline class="rbl" points="${ln(rbs)}"/>`;
+  lbs.forEach(p=>b+=`<rect class="bar1" x="${X(p.ch)-3}" y="${Y(p.rl)-3}" width="6" height="6"/><text class="lbm" x="${X(p.ch)}" y="${Y(p.rl)-8}" text-anchor="middle">${esc(p.n)}</text>`);
+  rbs.forEach(p=>b+=`<rect class="bar2" x="${X(p.ch)-3}" y="${Y(p.rl)-3}" width="6" height="6"/>`);
+  const ly=(title?40:18);
+  b+=`<line class="wl" x1="${m.l}" x2="${m.l+18}" y1="${ly}" y2="${ly}"/><text class="lbm" x="${m.l+22}" y="${ly+4}">Bed</text>`;
+  if(lbs.length)b+=`<line class="lbl" x1="${m.l+60}" x2="${m.l+80}" y1="${ly}" y2="${ly}"/><text class="lbm" x="${m.l+84}" y="${ly+4}">LB top</text>`;
+  if(rbs.length)b+=`<line class="rbl" x1="${m.l+140}" x2="${m.l+160}" y1="${ly}" y2="${ly}"/><text class="lbm" x="${m.l+164}" y="${ly+4}">RB top</text>`;
+  return svgWrap(W,H,P,title,b);
+}
+function plotBanks(sm,P,title){
+  const rows=sm.filter(q=>q.a&&(q.a.lb||q.a.rb));if(!rows.length)return '';
+  const W=420,H=title?270:236,m={l:40,r:10,t:title?56:34,b:34};
+  const mx=Math.max(...rows.map(q=>Math.max(q.a.lbH||0,q.a.rbH||0)))*1.18||1;
+  const ty=nice(0,mx,4);const Y=v=>H-m.b-v/mx*(H-m.t-m.b);
+  let b='';ty.t.forEach(v=>b+=`<line class="g" x1="${m.l}" x2="${W-m.r}" y1="${Y(v)}" y2="${Y(v)}"/><text class="tx" x="${m.l-5}" y="${Y(v)+3.5}" text-anchor="end">${v.toFixed(dec(ty.step))}</text>`);
+  b+=`<line class="ax" x1="${m.l}" x2="${W-m.r}" y1="${Y(0)}" y2="${Y(0)}"/>`;
+  const gw=(W-m.l-m.r)/rows.length,bw=Math.min(34,gw*0.32);
+  rows.forEach((q,i)=>{const cx=m.l+gw*(i+.5);
+    [[q.a.lbH,'bar1',-1],[q.a.rbH,'bar2',1]].forEach(([h,c,sd])=>{if(!Number.isFinite(h))return;const x=sd<0?cx-bw-2:cx+2;
+      b+=`<rect class="${c}" x="${x}" y="${Y(h)}" width="${bw}" height="${Y(0)-Y(h)}"/><text class="dmt" x="${x+bw/2}" y="${Y(h)-4}" text-anchor="middle" style="font-size:10.5px">${f(h)}</text>`});
+    b+=`<text class="lb" x="${cx}" y="${H-m.b+15}" text-anchor="middle">${esc(q.l.name)}</text><text class="tx" x="${cx}" y="${H-m.b+27}" text-anchor="middle">ch ${f(q.l.ch,0)}</text>`});
+  const ly=title?40:18;
+  b+=`<rect class="bar1" x="${m.l}" y="${ly-6}" width="12" height="12"/><text class="lbm" x="${m.l+16}" y="${ly+4}">Left bank above bed (m)</text><rect class="bar2" x="${m.l+170}" y="${ly-6}" width="12" height="12"/><text class="lbm" x="${m.l+186}" y="${ly+4}">Right bank above bed (m)</text>`;
+  return svgWrap(W,H,P,title,b);
+}
+
+/* ---------- navigation ---------- */
+let stack=Array.isArray(S.stack)&&S.stack.length?S.stack:[{v:'home'}];let pushed=0;
+const cur=()=>stack[stack.length-1];
+function go(n){stack.push(n);S.stack=stack;save();history.pushState({n:stack.length},'');pushed++;draft=null;render();window.scrollTo(0,0)}
+function popView(k=1){for(let i=0;i<k;i++)if(stack.length>1)stack.pop();S.stack=stack;save();draft=null;render()}
+let pend=0;
+function uiBack(k=1){if(pushed>=k){pend=k;history.go(-k)}else{pushed=0;popView(k)}}
+addEventListener('popstate',()=>{const k=pend||1;pend=0;pushed=Math.max(0,pushed-k);if(sightOpen&&k===1){closeSight();return}popView(k)});
+
+let tt=0;function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('on'),2800)}
+
+function render(){
+  const n=cur();const s=n.s?getS(n.s):null;const l=s&&n.l?s.lines.find(x=>x.id===n.l):null;
+  if((n.s&&!s)||(n.l&&!l)){stack=[{v:'home'}];S.stack=stack;return render()}
+  const V={home:vHome,survey:vSurvey,esurvey:vEditSurvey,line:vLine,eline:vEditLine,point:vPoint,cal:vCal,help:vHelp,exp:vExport}[n.v]||vHome;
+  const o=V(n,s,l);
+  $('#hTitle').textContent=o.title;$('#hSub').textContent=o.sub||'';$('#hBack').hidden=stack.length<=1;
+  $('#app').innerHTML=o.html;
+}
+
+/* ---------- views ---------- */
+const ICON_ROD=`<svg viewBox="0 0 22 26" aria-hidden="true"><path d="M11 2v22" stroke="currentColor" stroke-width="2"/><path d="M4 9h14" stroke="#FF3B1F" stroke-width="3"/><path d="M11 9l-6 -6M11 9l6 -6" stroke="currentColor" stroke-width="1.4" fill="none"/></svg>`;
+function calLine(){const st=S.settings,m=st.mode,d=st.calDate[m];
+  return d?`<span class="tag ok">Calibrated ${esc(d)}</span> <span class="mono small">offset ${fmtAng(st.cal[m])}</span>`:`<span class="tag warn">Not calibrated</span> <span class="small muted">readings may carry a fixed error</span>`}
+function vHome(){
+  const sv=S.surveys.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  return {title:'Nala Phone Level',sub:'Quick planning survey with the phone tilt sensor',html:`
+  ${window.isSecureContext?'':`<div class="note bad">This page is not opened over HTTPS, so the phone may block the camera, GPS and tilt sensor. Open it from your GitHub Pages link.</div>`}
+  <p class="lede">Measure how high the nala banks stand above the bed, using a tape, two poles marked at the same height, and this phone as a level.</p>
+  <div class="card">
+    <div class="row"><div class="grow"><div class="small muted">Sighting: ${S.settings.mode==='cam'?'camera crosshair':'top edge of phone'}</div><div>${calLine()}</div></div></div>
+    <div class="split"><button class="btn" data-a="cal">Calibrate</button><button class="btn" data-a="help">Field method</button></div>
+  </div>
+  <h2>Surveys</h2>
+  <div class="stack">${sv.length?sv.map(s=>{const nc=s.lines.filter(l=>l.type==='CS').length,nl=s.lines.filter(l=>l.type==='LS').length;
+    return `<button class="item" data-a="open-s" data-id="${s.id}"><b>${esc(s.nala||'Unnamed nala')} ${s.example?'<span class="tag rod">Example</span>':''}</b><span class="go">›</span><span class="meta">${esc(s.village)} · ${esc(s.date)} · ${nc} cross section${nc===1?'':'s'}${nl?' · L-section':''}</span></button>`}).join(''):`<p class="muted">No surveys yet. Start one for the nala you are planning.</p>`}</div>
+  <div class="split"><button class="btn pri" data-a="new-s">New survey</button><button class="btn" data-a="imp">Restore backup</button></div>
+  ${S.surveys.some(s=>s.example)?'':`<button class="btn ghost sm" data-a="add-ex">Add the example survey</button>`}
+  <p class="foot">Data stays on this phone, in this browser. Export a backup (JSON) after each field day.<br>Jitendra Sonawane, Agriculture Engineer, 7720045808</p>`};
+}
+function vEditSurvey(n,s){
+  const e=s||{village:'',nala:'',place:'',surveyor:'',date:today(),notes:''};
+  return {title:s?'Edit survey':'New survey',sub:s?s.nala:'',html:`
+  <div class="card">
+    <label class="fld"><span>Nala / drainage line name</span><input id="fNala" value="${esc(e.nala)}" placeholder="e.g. Bhavani nala, 2nd order"></label>
+    <label class="fld"><span>Village</span><input id="fVil" value="${esc(e.village)}"></label>
+    <label class="fld"><span>Block / district / site note</span><input id="fPlace" value="${esc(e.place)}"></label>
+    <div class="split"><label class="fld"><span>Surveyor</span><input id="fSur" value="${esc(e.surveyor)}"></label><label class="fld"><span>Date</span><input id="fDate" type="date" value="${esc(e.date)}"></label></div>
+    <label class="fld"><span>Notes</span><textarea id="fNotes">${esc(e.notes)}</textarea></label>
+  </div>
+  <button class="btn pri wide" data-a="save-s">${s?'Save changes':'Create survey'}</button>
+  ${s?`<button class="btn danger wide" data-a="del-s">Delete this survey</button>`:''}`};
+}
+function hcell(h,sg){return Number.isFinite(h)?`${f(h)} <span class="pm">${cm(sg)}</span>`:'–'}
+function vSurvey(n,s){
+  const cs=s.lines.filter(l=>l.type==='CS').sort((a,b)=>a.ch-b.ch),ls=s.lines.filter(l=>l.type==='LS');
+  const sm=summary(s);const pr=lsProfile(s);
+  const lsr=ls.map(l=>({l,r:lineResults(s,l)}));
+  return {title:s.nala||'Survey',sub:`${s.village} · ${s.date}`,html:`
+  ${s.example?`<div class="note">This is example data so you can see the outputs. Delete it from Edit when you no longer need it.</div>`:''}
+  <h2>Cross sections</h2>
+  <div class="stack">${cs.map(l=>{const a=sm.find(q=>q.l===l).a;
+    return `<button class="item" data-a="open-l" data-id="${l.id}"><b>${esc(l.name)} <span class="muted small">ch ${f(l.ch,1)} m</span></b><span class="go">›</span><span class="meta">${a&&a.lb&&a.rb?`LB ${f(a.lbH)} m · RB ${f(a.rbH)} m above bed`:`${l.pts.length} point${l.pts.length===1?'':'s'}, keep surveying`}</span></button>`}).join('')||'<p class="muted">None yet.</p>'}</div>
+  <button class="btn pri" data-a="new-l" data-t="CS">Add cross section</button>
+  <h2>L-section</h2>
+  <div class="stack">${lsr.map(({l,r})=>`<button class="item" data-a="open-l" data-id="${l.id}"><b>${esc(l.name)}</b><span class="go">›</span><span class="meta">${r.a?`${f(r.a.L,1)} m long · fall ${f(r.a.fall)} m · bed slope ${f(r.a.slope)} %`:`${l.pts.length} station${l.pts.length===1?'':'s'}`}</span></button>`).join('')||'<p class="muted small">Survey bed stations along the nala to link all cross sections to one level and get the bed slope.</p>'}</div>
+  ${ls.length?'':`<button class="btn" data-a="new-l" data-t="LS">Add L-section</button>`}
+  <h2>Results</h2>
+  ${sm.length?`<div class="tw"><table class="t"><thead><tr><th>Section</th><th>Ch m</th><th>LB above bed</th><th>RB above bed</th><th>Lower bank</th><th>Top width m</th><th>Area m²</th></tr></thead><tbody>
+    ${sm.map(q=>{const a=q.a;return `<tr data-a="open-l" data-id="${q.l.id}"><td>${esc(q.l.name)}${a&&a.hfl?`<br><span class="small muted">HFL ${f(a.hflH)} m</span>`:''}</td><td>${f(q.l.ch,1)}</td><td>${a?hcell(a.lbH,a.lbS):'–'}</td><td>${a?hcell(a.rbH,a.rbS):'–'}</td><td>${a?hcell(a.lowH,a.lowS):'–'}</td><td>${a?f(a.tw,1):'–'}</td><td>${a?f(a.area,1):'–'}</td></tr>`}).join('')}
+  </tbody></table></div>
+  <p class="small muted">Lower bank is the bank-full depth: the water depth the section holds before it spills over the lower bank. Area and top width are at that level.</p>
+  <div class="plot">${plotBanks(sm,VAR)}</div>`:'<p class="muted">Add a cross section to see bank heights.</p>'}
+  ${pr?`<div class="plot">${plotLS(s,VAR)}<div class="plotcap">Banks are drawn for sections tied to the L-section (bed level read from the L-section at their chainage).</div></div>`:''}
+  <div class="split"><button class="btn ink" data-a="exp">Export &amp; share</button><button class="btn" data-a="edit-s">Edit survey</button></div>`};
+}
+function vEditLine(n,s,l){
+  const isNew=!l;const type=l?l.type:n.t;
+  const nCS=s.lines.filter(x=>x.type==='CS').length;
+  const lastCh=Math.max(0,...s.lines.filter(x=>x.type==='CS').map(x=>x.ch));
+  const e=l||{name:type==='CS'?'CS-'+(nCS+1):'L-section',ch:type==='CS'?(nCS?lastCh+25:0):0,startRL:100,tie:true,hi:S.settings.hi,pts:[{label:type==='CS'?'LB peg':'Bed'}]};
+  const p0=(l?l.pts.find(p=>p.start):null)||e.pts[0];
+  return {title:isNew?(type==='CS'?'New cross section':'New L-section'):'Edit '+l.name,sub:s.nala,html:`
+  <div class="card">
+    <label class="fld"><span>Name</span><input id="fName" value="${esc(e.name)}"></label>
+    <label class="fld"><span>${type==='CS'?'Chainage along the nala (m)':'Chainage of the first station (m)'}</span><input id="fCh" class="mono" inputmode="decimal" value="${esc(e.ch)}"></label>
+    <label class="fld"><span>Start point name</span><input id="fStart" value="${esc(p0.label)}"></label>
+    <p class="small muted">${type==='CS'?'Start at a peg on the left bank, beyond the bank top, looking downstream. Offsets are measured from this peg across the nala.':'Start at the upstream-most bed station. Chainage increases downstream.'}</p>
+    <div class="split"><label class="fld"><span>RL of start point (m)</span><input id="fRL" class="mono" inputmode="decimal" value="${esc(e.startRL)}"></label>
+    <label class="fld"><span>Instrument height (m)</span><input id="fHi" class="mono" inputmode="decimal" value="${esc(e.hi)}"></label></div>
+    ${type==='CS'?`<label class="check"><input type="checkbox" id="fTie" ${e.tie?'checked':''}> Take bed level from the L-section at this chainage</label>`:''}
+  </div>
+  <button class="btn pri wide" data-a="save-l" data-t="${type}">${isNew?'Create and start surveying':'Save changes'}</button>
+  ${l?`<button class="btn danger wide" data-a="del-l">Delete ${esc(l.name)}</button>`:''}`};
+}
+function vLine(n,s,l){
+  const r=lineResults(s,l),a=r.a,isCS=l.type==='CS';
+  const setup=l.pts.find(p=>p.id===l.setup)||l.pts[0];
+  const off=compute(l);
+  const kp=isCS?(a?`<div class="kpis">
+      <div class="kpi lead"><div class="k">Left bank above bed</div><div class="v">${a.lb?f(a.lbH):'–'}<small> m ${cm(a.lbS)}</small></div></div>
+      <div class="kpi lead"><div class="k">Right bank above bed</div><div class="v">${a.rb?f(a.rbH):'–'}<small> m ${cm(a.rbS)}</small></div></div>
+      <div class="kpi"><div class="k">Bank-full depth</div><div class="v">${f(a.lowH)}<small> m</small></div></div>
+      <div class="kpi"><div class="k">Top width at bank-full</div><div class="v">${f(a.tw,1)}<small> m</small></div></div>
+      <div class="kpi"><div class="k">Flow area</div><div class="v">${f(a.area,1)}<small> m²</small></div></div>
+      <div class="kpi"><div class="k">${a.hfl?'HFL above bed':'Bed RL'}</div><div class="v">${a.hfl?f(a.hflH):f(a.bed.rl,3)}<small> m</small></div></div>
+    </div>`:`<div class="note">Add at least the bank tops and the bed to see heights. Points so far: ${l.pts.length}.</div>`)
+    :(a?`<div class="kpis">
+      <div class="kpi lead"><div class="k">Bed slope</div><div class="v">${f(a.slope)}<small> %</small></div></div>
+      <div class="kpi"><div class="k">Total fall</div><div class="v">${f(a.fall)}<small> m ${cm(a.fallS)}</small></div></div>
+      <div class="kpi"><div class="k">Length surveyed</div><div class="v">${f(a.L,1)}<small> m</small></div></div>
+      <div class="kpi"><div class="k">Steepest stretch</div><div class="v">${a.steep?f(a.steep.s):'–'}<small> % ${a.steep?`ch ${f(a.steep.from,0)}–${f(a.steep.to,0)}`:''}</small></div></div>
+    </div>`:`<div class="note">Add the next bed station to see the slope.</div>`);
+  const bed=a&&isCS?a.bed.rl:null;
+  const plot=isCS?plotCS(r,VAR):(lsProfile(s)&&lsProfile(s).ls===l?plotLS(s,VAR):'');
+  return {title:l.name,sub:isCS?`${s.nala} · ch ${f(l.ch,1)} m`:s.nala,html:`
+  ${kp}
+  ${r.tie?`<p class="small muted">${esc(r.tie)}</p>`:''}
+  ${plot?`<div class="plot">${plot}<div class="plotcap">${isCS?'Looking downstream: left bank on the left. Red triangles mark instrument setups. ':''}${isCS?veText(r):''}</div></div>`:''}
+  <div class="setup">${ICON_ROD}<div class="tx">Instrument at<br><b>${esc(setup.label)}</b> <span class="mono small">${isCS?'offset':'ch'} ${f((isCS?0:l.ch)+(off[setup.id]?off[setup.id].off:0),2)}</span></div>
+    <select id="selSetup" aria-label="Move instrument">${l.pts.map(p=>`<option value="${p.id}" ${p.id===setup.id?'selected':''}>${esc(p.label)} · ${f((isCS?0:l.ch)+off[p.id].off,1)}</option>`).join('')}</select></div>
+  <button class="btn pri wide" data-a="new-p">${isCS?'Add point':'Add next bed station'}</button>
+  <div class="tw"><table class="t"><thead><tr><th>Point</th><th>${isCS?'Offset m':'Ch m'}</th><th>RL m</th>${isCS?'<th>Above bed</th>':''}<th>±</th></tr></thead><tbody>
+  ${r.rows.map(q=>`<tr data-a="open-p" data-id="${q.p.id}"><td>${esc(q.p.label)}${q.p.id===setup.id?' <span class="tag rod">inst</span>':''}${q.p.gps?' <span class="tag">GPS</span>':''}</td><td>${f((isCS?0:l.ch)+q.off,2)}</td><td>${f(q.rl,3)}</td>${isCS?`<td>${bed!=null?f(q.rl-bed):'–'}</td>`:''}<td class="pm">${q.p.start?'start':cm(q.sig)}</td></tr>`).join('')}
+  </tbody></table></div>
+  <div class="card">
+    <div class="row"><div class="grow"><div class="small muted">Location of this ${isCS?'section':'line'}</div><div class="mono small">${l.gps?`${l.gps.lat.toFixed(6)}, ${l.gps.lon.toFixed(6)} <span class="muted">±${Math.round(l.gps.acc)} m</span>`:'Not captured'}</div></div><button class="btn sm" data-a="gps-l">${l.gps?'Recapture':'Capture'} GPS</button></div>
+  </div>
+  <div class="split"><button class="btn" data-a="png-l">Save drawing (PNG)</button><button class="btn" data-a="edit-l">Edit ${isCS?'section':'line'}</button></div>`};
+}
+let draft=null;
+function descendants(l,id){const set=new Set([id]);let grow=true;while(grow){grow=false;l.pts.forEach(p=>{if(!set.has(p.id)&&p.st&&set.has(p.st)){set.add(p.id);grow=true}})}return set}
+function vPoint(n,s,l){
+  const key=(n.p||'new')+l.id;
+  if(!draft||draft._key!==key){
+    if(n.p){const p=l.pts.find(x=>x.id===n.p);if(!p){stack.pop();return vLine(cur(),s,l)}draft=Object.assign({},p,{_key:key,_new:false,_move:false,_prevHi:p.hi,dTxt:String(p.d),aTxt:Number.isFinite(p.ang)?p.ang.toFixed(2):''})}
+    else{const last=l.pts.filter(p=>p.st===l.setup).slice(-1)[0];const hi=last?last.hi:l.hi;
+      draft=mkPt({st:l.setup,hi,ht:last?last.ht:hi,_key:key,_new:true,_move:l.type==='LS',_prevHi:hi,label:l.type==='LS'?'Bed':'',ang:NaN,dTxt:'',aTxt:''})}
+  }
+  const d=draft,isCS=l.type==='CS',labels=isCS?CS_LABELS:LS_LABELS;
+  if(d.start){
+    return {title:d.label,sub:l.name+' · start point',html:`<div class="card"><label class="fld"><span>Name</span><input id="pLab" data-f="label" value="${esc(d.label)}"></label>
+      <p class="small muted">This is the start point. Its RL (${f(l.startRL,3)}) is set in the ${isCS?'section':'line'} settings.</p>
+      <div class="row"><div class="grow mono small">${d.gps?`${d.gps.lat.toFixed(6)}, ${d.gps.lon.toFixed(6)} ±${Math.round(d.gps.acc)} m`:'No GPS'}</div><button class="btn sm" data-a="gps-p">Capture GPS</button></div>
+      <label class="fld"><span>Note</span><input data-f="note" value="${esc(d.note)}"></label></div>
+      <button class="btn pri wide" data-a="save-p">Save</button>`};
+  }
+  const desc=d._new?new Set():descendants(l,d.id);
+  const offs=compute(l);
+  const steady=d.sd==null?'':d.sd<0.08?'<span class="tag ok">steady</span>':d.sd<0.2?'<span class="tag warn">some shake</span>':'<span class="tag warn">unsteady, retake</span>';
+  return {title:d._new?(isCS?'New point':'Next bed station'):'Edit point',sub:l.name,html:`
+  <div class="card">
+    <div class="fld"><span>Point</span><div class="chips">${labels.map(x=>`<button class="chip ${d.label===x?'on':''}" data-a="lab" data-v="${esc(x)}">${esc(x)}</button>`).join('')}</div>
+      <input id="pLab" data-f="label" value="${esc(d.label)}" placeholder="or type a name"></div>
+    <label class="fld"><span>Instrument at</span><select id="pSt" data-f="st">${l.pts.filter(p=>p.id!==d.id&&!desc.has(p.id)).map(p=>`<option value="${p.id}" ${p.id===d.st?'selected':''}>${esc(p.label)} · ${isCS?'offset':'ch'} ${f((isCS?0:l.ch)+offs[p.id].off,2)}</option>`).join('')}</select></label>
+    <div class="split"><label class="fld"><span>Instrument height (m)</span><input class="mono" inputmode="decimal" data-f="hi" value="${esc(d.hi)}"></label>
+      <label class="fld"><span>Target mark height (m)</span><input class="mono" inputmode="decimal" data-f="ht" value="${esc(d.ht)}"></label></div>
+  </div>
+  <div class="card">
+    <label class="fld"><span>Taped distance from instrument (m)</span><input id="pD" class="mono" inputmode="decimal" data-f="dTxt" value="${esc(d.dTxt)}" placeholder="0.00"></label>
+    <div class="seg"><button class="${d.mode!=='s'?'on':''}" data-a="pmode" data-v="h">Tape held level</button><button class="${d.mode==='s'?'on':''}" data-a="pmode" data-v="s">Tape along slope</button></div>
+    <div class="seg"><button class="${d.dir!==-1?'on':''}" data-a="pdir" data-v="1">${isCS?'Towards right bank':'Downstream'}</button><button class="${d.dir===-1?'on':''}" data-a="pdir" data-v="-1">${isCS?'Towards left bank':'Upstream'}</button></div>
+  </div>
+  <div class="angbox"><div><div class="small muted">Sight angle (corrected)</div><div class="big" id="pAng">${fmtAng(d.ang)}</div><div class="sm">${d.n?`${d.n} readings, spread ${f(d.sd,2)}° ${steady}`:Number.isFinite(d.ang)?'typed by hand':'not read yet'}</div></div>
+    <button class="btn pri" data-a="sight">Sight</button></div>
+  <div class="row"><label class="fld grow"><span>Or type the angle (° , minus = target below)</span><input id="pA" class="mono" inputmode="decimal" data-f="aTxt" value="${esc(d.aTxt)}" placeholder="-12.40"></label><button class="btn" data-a="pm" style="margin-top:22px" aria-label="Change sign">±</button></div>
+  <div id="pPrev">${previewHtml(s,l,d)}</div>
+  <div class="card">
+    <div class="row"><div class="grow mono small">${d.gps?`${d.gps.lat.toFixed(6)}, ${d.gps.lon.toFixed(6)} ±${Math.round(d.gps.acc)} m`:'<span class="muted" style="font-family:var(--ui)">No GPS for this point</span>'}</div><button class="btn sm" data-a="gps-p">Capture GPS</button></div>
+    <label class="fld"><span>Note</span><input data-f="note" value="${esc(d.note)}" placeholder="e.g. hard rock at bed, outlet of field"></label>
+    <label class="check"><input type="checkbox" data-f="_move" ${d._move?'checked':''}> Move instrument to this point after saving</label>
+  </div>
+  <div class="split"><button class="btn pri" data-a="save-p">Save</button>${d._new?`<button class="btn ink" data-a="save-p" data-next="1">Save &amp; next</button>`:`<button class="btn danger" data-a="del-p">Delete</button>`}</div>`};
+}
+function previewHtml(s,l,d){
+  const isCS=l.type==='CS';const dd=num(d.dTxt);const st=l.pts.find(p=>p.id===d.st);
+  if(!(Number.isFinite(dd)&&dd>0&&Number.isFinite(d.ang)&&st))return '';
+  const hi=numOr(d.hi,1.5),ht=numOr(d.ht,hi);
+  const tmp=Object.assign({},l,{pts:l.pts.filter(p=>p.id!==d.id).concat([Object.assign({},d,{d:dd,hi,ht})])});
+  const rr=lineResults(s,tmp);const pv=rr.rows.find(q=>q.p.id===d.id);if(!pv)return '';
+  const stRow=rr.rows.find(q=>q.p.id===d.st);const dRel=stRow?pv.rl-stRow.rl:NaN;
+  return `<div class="preview"><div><div class="k">${isCS?'Offset':'Chainage'}</div><div class="v">${f((isCS?0:l.ch)+pv.off,2)}</div></div><div><div class="k">RL</div><div class="v">${f(pv.rl,3)}</div></div><div><div class="k">vs instr. pt</div><div class="v">${(dRel>=0?'+':'')+f(dRel)}</div></div></div><p class="small muted" style="text-align:center;margin-top:6px">Expected error ${cm(pv.sig)}${dd>25?'. Sights over 25 m lose accuracy: move the instrument closer.':''}</p>`;
+}
+let calD={t1:null,t2:null};
+function vCal(){
+  const st=S.settings,m=st.mode;
+  const step=(k,txt)=>{const r=calD[k];return `<div class="card"><div class="row"><div class="grow"><b>Step ${k==='t1'?1:2}</b><div class="small muted">${txt}</div></div>
+    ${r?`<div class="mono" style="font-size:22px;font-weight:600">${fmtAng(r.raw)}</div>`:''}</div>
+    ${r?`<div class="small muted">${r.n} readings, spread ${f(r.sd,2)}°</div>`:''}
+    <button class="btn ${r?'':'pri'}" data-a="cal-read" data-k="${k}">${r?'Read again':'Read'}</button></div>`};
+  let res='';
+  if(calD.t1&&calD.t2){const c=(calD.t1.raw+calD.t2.raw)/2,sl=(calD.t1.raw-calD.t2.raw)/2;
+    res=`<div class="card"><div class="kpis" style="border:0"><div class="kpi lead"><div class="k">Offset to remove</div><div class="v">${fmtAng(c)}</div></div><div class="kpi"><div class="k">True slope A→B</div><div class="v">${fmtAng(sl)}</div></div></div>
+      ${Math.abs(c)>3?'<div class="note bad">The offset is larger than 3°. Check that both marks are at the same height and that you sighted the marks, not the pole tops.</div>':''}
+      <button class="btn pri wide" data-a="cal-save">Save offset for ${m==='cam'?'camera sighting':'top-edge sighting'}</button></div>`}
+  const log=(st.calLog||[]).filter(x=>x.mode===m).slice(-5).reverse();
+  return {title:'Calibrate',sub:'Reciprocal sights between two poles',html:`
+  <div class="seg"><button class="${m==='cam'?'on':''}" data-a="cal-mode" data-v="cam">Camera crosshair</button><button class="${m==='edge'?'on':''}" data-a="cal-mode" data-v="edge">Top edge</button></div>
+  <div class="card"><div>${calLine()}</div>
+  <p class="small">The phone's tilt sensor and camera are never perfectly square, so each phone reads a few tenths of a degree off. Sighting the same line from both ends cancels the slope and leaves only that offset.</p>
+  <ol class="steps small"><li>Set two poles 10 to 20 m apart on any ground. Mark both at the same height, e.g. 1.50 m.</li><li>At pole A, hold the camera lens at A's mark and aim at B's mark.</li><li>Walk to pole B and aim back at A's mark.</li></ol></div>
+  ${step('t1','At pole A, aim at the mark on pole B')}
+  ${step('t2','At pole B, aim at the mark on pole A')}
+  ${res}
+  ${log.length?`<h2>Earlier calibrations</h2><div class="tw"><table class="t"><thead><tr><th>Date</th><th>Offset</th><th>Slope A→B</th></tr></thead><tbody>${log.map(x=>`<tr><td>${esc(x.date)}</td><td>${fmtAng(x.c)}</td><td>${fmtAng(x.sl)}</td></tr>`).join('')}</tbody></table></div><p class="small muted">Offsets from different runs should agree within about 0.1°. A bigger spread means the hand is not steady or the phone moved in its holder.</p>`:''}
+  <div class="card"><label class="fld"><span>Sensor and aiming error used for ± estimates (°)</span><input id="fSig" class="mono" inputmode="decimal" value="${esc(st.sigma)}"></label><button class="btn sm" data-a="save-sig">Update</button></div>`};
+}
+function vHelp(){
+  return {title:'Field method',sub:'Phone level for planning surveys',html:`
+  <div class="plot"><svg viewBox="0 0 420 190" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Instrument pole and target pole with sight line">${svgCss(VAR)}
+    <polygon class="ef" points="0,120 120,128 230,170 300,172 420,150 420,190 0,190"/><polyline class="gr" points="0,120 120,128 230,170 300,172 420,150"/>
+    <line class="dm" x1="60" y1="124" x2="60" y2="64"/><rect class="st" x="56" y="62" width="8" height="5"/>
+    <line class="dm" x1="300" y1="172" x2="300" y2="112"/><rect class="st" x="296" y="110" width="8" height="5"/>
+    <line class="bf" x1="64" y1="64" x2="296" y2="112"/><line class="bl" x1="64" y1="64" x2="300" y2="64"/>
+    <text class="dmt" x="140" y="80">θ</text><text class="lbm" x="66" y="58">phone at h<tspan dy="3" font-size="8">i</tspan></text><text class="lbm" x="306" y="110">mark at h<tspan dy="3" font-size="8">t</tspan></text>
+    <line class="dm" x1="60" y1="182" x2="300" y2="182"/><text class="dmt" x="180" y="178" text-anchor="middle">D (tape)</text>
+    <text class="tx" x="10" y="20">RL(target) = RL(instrument point) + hi + D·tanθ − ht</text></svg></div>
+  <div class="card"><b>What you need</b><p class="small">Two straight poles (ranging rods or bamboo) with a cloth band at the same height on both, a 30 m tape, and a helper. Calibrate once at the start of each day.</p></div>
+  <div class="card"><b>Cross section</b><ol class="steps small">
+    <li>Fix a peg on the left bank (looking downstream), a little beyond the bank top. Stand the instrument pole on it.</li>
+    <li>The helper holds the target pole at each change in ground: LB top, LB toe, bed points, deepest bed, RB toe, RB top, and the field beyond. Add flood marks as HFL mark.</li>
+    <li>Tape the distance from the instrument pole to the target pole. Keep the tape level, or choose "Tape along slope".</li>
+    <li>Hold the phone upright against the pole with the camera lens at the band. Tap Sight, put the crosshair on the target band, tap Read and hold still for 2 seconds.</li>
+    <li>If you cannot see the target or the sight is over 20 to 25 m, move the instrument to a surveyed point (bed or RB top) and continue from there.</li></ol></div>
+  <div class="card"><b>L-section</b><ol class="steps small">
+    <li>Start at the upstream bed station. Sight the next bed station 20 to 30 m downstream.</li>
+    <li>Save with "Move instrument to this point" ticked (on by default), walk there, and sight the next one.</li>
+    <li>Give each cross section its chainage. Sections that take their bed level from the L-section are drawn on the L-section with both bank tops.</li></ol></div>
+  <div class="card"><b>How accurate is it?</b>
+    <div class="tw"><table class="t acc"><thead><tr><th>Sight distance</th><th>Steady hand (0.15°)</th><th>Shaky (0.3°)</th></tr></thead><tbody>
+    <tr><td>5 m</td><td>±1–2 cm</td><td>±3 cm</td></tr><tr><td>10 m</td><td>±3 cm</td><td>±5 cm</td></tr><tr><td>20 m</td><td>±5–6 cm</td><td>±10 cm</td></tr><tr><td>30 m</td><td>±8 cm</td><td>±16 cm</td></tr></tbody></table></div>
+    <p class="small">Each instrument move adds its own error. Steep sights (over 20°) need the target band seen clearly. Results are good for siting structures, rough storage and DPR planning. Use an auto level for the final estimate.</p></div>
+  <div class="card"><b>Opening the app</b><p class="small">The camera, GPS and tilt sensor work only on an HTTPS page. Put this file on GitHub Pages and open the link in Chrome on the phone. On iPhone, tap Sight and allow motion access.</p></div>
+  <p class="foot">Jitendra Sonawane, Agriculture Engineer, 7720045808</p>`};
+}
+function vExport(n,s){
+  return {title:'Export & share',sub:s.nala,html:`
+  <div class="stack">
+    <button class="btn" data-a="x-sum">Summary table (CSV for Excel)</button>
+    <button class="btn" data-a="x-pts">All points (CSV for Excel)</button>
+    <button class="btn" data-a="x-png-banks">Bank height chart (PNG)</button>
+    ${lsProfile(s)?`<button class="btn" data-a="x-png-ls">L-section drawing (PNG)</button>`:''}
+    <button class="btn" data-a="x-png-all">All cross section drawings (PNG)</button>
+    <button class="btn" data-a="x-kml">GPS locations (KML for Google Earth)</button>
+    <button class="btn ink" data-a="x-json">Backup this survey (JSON)</button>
+    ${navigator.share?`<button class="btn pri" data-a="x-share">Share summary as text</button>`:''}
+  </div>
+  <p class="small muted">Files go to the phone's Downloads folder.</p>`};
+}
+
+/* ---------- files ---------- */
+function download(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},2000)}
+const base=s=>((s.village||'')+'_'+(s.nala||'survey')).replace(/[^\w\-]+/g,'_').replace(/_+/g,'_').replace(/^_|_$/g,'')||'survey';
+const cell=v=>{v=v==null?'':String(v);return /[",\r\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v};
+const toCSV=rows=>'﻿'+rows.map(r=>r.map(cell).join(',')).join('\r\n');
+function svgToPng(svg,name){
+  const m=svg.match(/viewBox="0 0 (\d+) (\d+)"/);const W=+m[1],H=+m[2],sc=3;
+  const img=new Image();const url=URL.createObjectURL(new Blob([svg],{type:'image/svg+xml'}));
+  img.onload=()=>{const c=document.createElement('canvas');c.width=W*sc;c.height=H*sc;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(url);c.toBlob(b=>download(b,name),'image/png')};
+  img.onerror=()=>{URL.revokeObjectURL(url);toast('Could not make the image')};img.src=url;
+}
+function sumRows(s){
+  const sm=summary(s);
+  return [['Survey',s.nala,'Village',s.village,'Date',s.date,'Surveyor',s.surveyor],[],
+    ['Section','Chainage_m','Bed_RL_m','Datum','LB_top_RL_m','LB_above_bed_m','LB_pm_cm','RB_top_RL_m','RB_above_bed_m','RB_pm_cm','Bankfull_depth_m','Top_width_m','Flow_area_m2','HFL_above_bed_m','Lat','Lon']]
+    .concat(sm.map(q=>{const a=q.a||{};const g=q.l.gps;return [q.l.name,f(q.l.ch,1),a.bed?f(a.bed.rl,3):'',q.r.tied?'L-section':'own',a.lb?f(a.lb.rl,3):'',a.lb?f(a.lbH,2):'',a.lb?Math.round(a.lbS*100):'',a.rb?f(a.rb.rl,3):'',a.rb?f(a.rbH,2):'',a.rb?Math.round(a.rbS*100):'',a.bf!=null?f(a.lowH,2):'',a.tw!=null?f(a.tw,2):'',a.area!=null?f(a.area,2):'',a.hfl?f(a.hflH,2):'',g?g.lat.toFixed(6):'',g?g.lon.toFixed(6):'']}));
+}
+function ptRows(s){
+  const out=[['Line','Type','Line_chainage_m','Point','Offset_or_chainage_m','RL_m','Above_bed_m','Pm_cm','Instrument_at','Distance_m','Tape','Direction','Angle_deg','Angle_spread_deg','Readings','Inst_ht_m','Target_ht_m','Lat','Lon','GPS_acc_m','Note']];
+  s.lines.slice().sort((a,b)=>a.type.localeCompare(b.type)||a.ch-b.ch).forEach(l=>{const r=lineResults(s,l);const bed=l.type==='CS'&&r.a?r.a.bed.rl:null;
+    r.rows.forEach(q=>{const p=q.p,st=l.pts.find(x=>x.id===p.st),g=p.gps;
+      out.push([l.name,l.type,f(l.ch,1),p.label,f((l.type==='CS'?0:l.ch)+q.off,3),f(q.rl,3),bed!=null?f(q.rl-bed,3):'',p.start?'':Math.round(q.sig*100),st?st.label:'(start)',p.start?'':f(p.d,3),p.start?'':(p.mode==='s'?'slope':'level'),p.start?'':(p.dir===-1?'back':'ahead'),p.start?'':p.ang.toFixed(3),p.sd!=null?p.sd.toFixed(3):'',p.n||'',p.start?'':p.hi,p.start?'':p.ht,g?g.lat.toFixed(7):'',g?g.lon.toFixed(7):'',g?Math.round(g.acc):'',p.note])})});
+  return out;
+}
+function kml(s){
+  const pm=(n,d,g)=>`<Placemark><name>${esc(n)}</name><description>${esc(d)}</description><Point><coordinates>${g.lon},${g.lat},0</coordinates></Point></Placemark>`;
+  let b='';const sm=summary(s);
+  s.lines.forEach(l=>{const a=(sm.find(q=>q.l===l)||{}).a;
+    if(l.gps)b+=pm(l.name,l.type==='CS'&&a?`Ch ${f(l.ch,1)} m. LB ${f(a.lbH)} m, RB ${f(a.rbH)} m above bed.`:l.type,l.gps);
+    l.pts.forEach(p=>{if(p.gps)b+=pm(l.name+' · '+p.label,p.note||'',p.gps)});
+    if(l.type==='LS'){const c=l.pts.filter(p=>p.gps);if(c.length>1)b+=`<Placemark><name>${esc(l.name)}</name><LineString><tessellate>1</tessellate><coordinates>${c.map(p=>p.gps.lon+','+p.gps.lat+',0').join(' ')}</coordinates></LineString></Placemark>`}});
+  return `<?xml version="1.0" encoding="UTF-8"?><kml xmlns="http://www.opengis.net/kml/2.2"><Document><name>${esc(s.nala)} — ${esc(s.village)}</name>${b}</Document></kml>`;
+}
+function shareText(s){
+  const sm=summary(s);let t=`${s.nala}, ${s.village} (${s.date})\nPhone level survey, planning accuracy\n`;
+  sm.forEach(q=>{const a=q.a;t+=a&&a.lb&&a.rb?`${q.l.name} ch ${f(q.l.ch,0)} m: LB ${f(a.lbH)} m, RB ${f(a.rbH)} m above bed; top width ${f(a.tw,1)} m${a.hfl?`; HFL ${f(a.hflH)} m`:''}\n`:`${q.l.name}: incomplete\n`});
+  s.lines.filter(l=>l.type==='LS').forEach(l=>{const a=lineResults(s,l).a;if(a)t+=`${l.name}: ${f(a.L,0)} m, fall ${f(a.fall)} m, bed slope ${f(a.slope)} %\n`});
+  return t;
+}
+
+/* ---------- GPS ---------- */
+let gps=null;
+function startGps(done){
+  if(!navigator.geolocation){toast('GPS is not available in this browser');return}
+  const sh=$('#sheet');sh.hidden=false;
+  sh.innerHTML=`<div class="in"><b>Getting GPS position</b><div class="small">Stand still with a clear view of the sky. Fixes: <b class="mono" id="gN">0</b> · best accuracy <b class="mono" id="gA">–</b> m</div><div class="small muted" id="gMsg">Waiting for the first fix…</div><div class="split"><button class="btn" data-a="gps-x">Cancel</button><button class="btn pri" data-a="gps-ok">Use position</button></div></div>`;
+  const fixes=[];
+  const wid=navigator.geolocation.watchPosition(p=>{fixes.push({lat:p.coords.latitude,lon:p.coords.longitude,acc:p.coords.accuracy});
+      $('#gN').textContent=fixes.length;$('#gA').textContent=Math.round(Math.min(...fixes.map(x=>x.acc)));$('#gMsg').textContent='Keep still. It stops by itself after 20 seconds.'},
+    e=>{const m=$('#gMsg');if(m)m.textContent=e.code===1?'Location permission was refused. Allow location for this page in the browser settings.':(e.message||'GPS error')},
+    {enableHighAccuracy:true,maximumAge:0,timeout:30000});
+  gps={wid,fixes,done,to:setTimeout(()=>stopGps(true),20000)};
+}
+function stopGps(use){
+  if(!gps)return;const g=gps;gps=null;navigator.geolocation.clearWatch(g.wid);clearTimeout(g.to);$('#sheet').hidden=true;
+  if(!use)return;
+  if(!g.fixes.length){toast('No GPS fix yet. Try again in the open.');return}
+  const best=Math.min(...g.fixes.map(x=>x.acc));const use2=g.fixes.filter(x=>x.acc<=Math.max(best*2,best+5));
+  let w=0,la=0,lo=0;use2.forEach(x=>{const k=1/(x.acc*x.acc);w+=k;la+=x.lat*k;lo+=x.lon*k});
+  g.done({lat:la/w,lon:lo/w,acc:best,n:use2.length,t:new Date().toISOString()});
+}
+
+/* ---------- sight (camera + tilt sensor) ---------- */
+let sightOpen=false,sOpt=null,sRes=null,stream=null,wake=null,raf=0,cap=null,zoom=1;
+const sens={buf:[],got:false,abs:false};
+const calNow=()=>S.settings.cal[S.settings.mode]||0;
+function onOri(e){
+  if(e.beta==null)return;
+  if(!sens.got){sens.got=true;$('#sMsg').textContent=''}
+  const b=e.beta*D2R,g=(e.gamma||0)*D2R;
+  // camera looks along the phone's −z axis; top edge looks along +y
+  const el=(S.settings.mode==='cam'?Math.asin(clamp1(-Math.cos(b)*Math.cos(g))):Math.asin(clamp1(Math.sin(b))))*R2D;
+  const t=performance.now();sens.buf.push({t,v:el});while(sens.buf.length&&t-sens.buf[0].t>3000)sens.buf.shift();
+  if(cap&&cap.rec)cap.buf.push(el);
+}
+async function openSight(opt){
+  sOpt=opt;sRes=null;sightOpen=true;cap=null;
+  history.pushState({sight:1},'');pushed++;
+  $('#sight').hidden=false;document.body.classList.add('noscroll');
+  $('#sHint').textContent=opt.hint||'';$('#sRes').hidden=true;$('#sAct').hidden=false;$('#sRead').disabled=false;$('#sRead').textContent='Read angle';$('#sMsg').textContent='';
+  $('#sMode').textContent=S.settings.mode==='cam'?'Use top edge':'Use camera';
+  try{if(typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission==='function'){const r=await DeviceOrientationEvent.requestPermission();if(r!=='granted')$('#sMsg').textContent='Motion access was refused. Allow it in Settings, or type the angle by hand.'}}catch(e){}
+  sens.buf=[];sens.got=false;sens.abs=false;addEventListener('deviceorientation',onOri);
+  setTimeout(()=>{if(sightOpen&&!sens.got){sens.abs=true;addEventListener('deviceorientationabsolute',onOri);
+    setTimeout(()=>{if(sightOpen&&!sens.got)$('#sMsg').textContent='No reading from the tilt sensor. The page must be on HTTPS, and some phones lack the sensor. You can type the angle by hand.'},1800)}},1500);
+  startCam();
+  try{if(navigator.wakeLock)wake=await navigator.wakeLock.request('screen')}catch(e){}
+  cancelAnimationFrame(raf);loop();
+}
+function closeSight(){
+  sightOpen=false;cap=null;removeEventListener('deviceorientation',onOri);removeEventListener('deviceorientationabsolute',onOri);
+  stopCam();try{wake&&wake.release()}catch(e){}wake=null;cancelAnimationFrame(raf);
+  $('#sight').hidden=true;document.body.classList.remove('noscroll');
+}
+const EDGE_TXT='Top-edge sighting: hold the phone with the screen facing you and the top edge pointing at the target. Look along the top edge to the target mark, then tap Read.';
+async function startCam(){
+  const v=$('#cam'),nc=$('#nocam');
+  $('#xh').hidden=S.settings.mode!=='cam';$('#sZoom').hidden=S.settings.mode!=='cam';
+  if(S.settings.mode!=='cam'){stopCam();v.hidden=true;nc.hidden=false;nc.textContent=EDGE_TXT;return}
+  if(stream){v.hidden=false;nc.hidden=true;return}
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){v.hidden=true;nc.hidden=false;nc.textContent='The camera is not available here (the page needs HTTPS). Switch to top-edge sighting, or type the angle by hand.';return}
+  try{
+    const s=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}},audio:false});
+    if(!sightOpen||S.settings.mode!=='cam'){s.getTracks().forEach(t=>t.stop());return}
+    stream=s;v.srcObject=s;v.hidden=false;nc.hidden=true;v.play().catch(()=>{});setZoom(zoom);
+  }catch(e){v.hidden=true;nc.hidden=false;nc.textContent='The camera could not start ('+(e.name||'error')+'). Allow camera access for this page, or switch to top-edge sighting.'}
+}
+function stopCam(){if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}const v=$('#cam');v.srcObject=null}
+function setZoom(z){zoom=z;$('#cam').style.transform=`scale(${z})`;document.querySelectorAll('#sZoom button').forEach(b=>b.classList.toggle('on',+b.dataset.z===z))}
+function loop(){
+  raf=requestAnimationFrame(loop);
+  const now=performance.now();const rec=sens.buf.filter(x=>now-x.t<1000);if(!rec.length)return;
+  const last=sens.buf.filter(x=>now-x.t<300);const raw=mean((last.length?last:rec).map(x=>x.v));const sd=std(rec.map(x=>x.v));
+  const shown=sOpt.raw?raw:raw-calNow();
+  if(!cap&&!sRes)$('#sAng').textContent=fmtAng(shown);
+  $('#sRaw').textContent=sOpt.raw?'raw sensor angle':`raw ${fmtAng(raw)} · offset ${fmtAng(calNow())}`;
+  const q=Math.max(0,Math.min(1,1-sd/0.4));const bar=$('#sStab');bar.style.width=(q*100).toFixed(0)+'%';
+  bar.style.background=sd<0.05?'#4CC27F':sd<0.15?'#E0A43A':'#F06C5E';
+  $('#sStabTx').textContent=`Shake ${sd.toFixed(2)}°`+(sd<0.05?' · steady':sd<0.15?' · nearly steady':' · hold still');
+}
+function sightRead(){
+  if(cap)return;
+  if(!sens.got){$('#sMsg').textContent='No tilt sensor reading yet.';return}
+  cap={buf:[],rec:false};$('#sRead').disabled=true;$('#sRead').textContent='Hold still…';
+  setTimeout(()=>{if(!cap)return;cap.rec=true;$('#sRead').textContent='Reading…';setTimeout(sightDone,2000)},600);
+}
+function sightDone(){
+  if(!cap)return;const b=cap.buf;cap=null;$('#sRead').disabled=false;$('#sRead').textContent='Read angle';
+  if(b.length<8){$('#sMsg').textContent='Too few sensor readings. Try again.';return}
+  const raw=mean(b),sd=std(b),c=sOpt.raw?0:calNow(),ang=raw-c;
+  sRes={raw,sd,n:b.length,ang,cal:c,mode:S.settings.mode};
+  const d=num(sOpt.d);const sig=Math.sqrt(sd*sd+S.settings.sigma**2)*D2R;
+  $('#sAng').textContent=fmtAng(sOpt.raw?raw:ang);
+  const r=$('#sRes');r.hidden=false;$('#sAct').hidden=true;
+  r.innerHTML=`<div class="big">${fmtAng(sOpt.raw?raw:ang)}</div><div style="font-size:14px;color:#C9D3D8">${b.length} readings, spread ${sd.toFixed(2)}°${sd>0.2?' · unsteady, read again for a better result':''}${Number.isFinite(d)&&d>0&&!sOpt.raw?` · about ${cm(d*sig/Math.cos(ang*D2R)**2)} at ${f(d,1)} m`:''}</div>
+    <div class="s-act"><button data-a="s-again">Read again</button><button class="read" data-a="s-use">Use this angle</button></div>`;
+}
+
+/* ---------- actions ---------- */
+function numOr(v,dflt){const x=num(v);return Number.isFinite(x)?x:dflt}
+const A={
+  back:()=>uiBack(1),
+  'open-s':el=>go({v:'survey',s:el.dataset.id}),
+  'new-s':()=>go({v:'esurvey'}),
+  'edit-s':()=>go({v:'esurvey',s:cur().s}),
+  'save-s':()=>{const n=cur();const o={nala:$('#fNala').value.trim(),village:$('#fVil').value.trim(),place:$('#fPlace').value.trim(),surveyor:$('#fSur').value.trim(),date:$('#fDate').value||today(),notes:$('#fNotes').value};
+    if(!o.nala){toast('Enter the nala name');return}
+    if(n.s){Object.assign(getS(n.s),o);save();uiBack()}
+    else{const s=Object.assign({id:uid(),lines:[]},o);S.surveys.push(s);save();stack.pop();stack.push({v:'survey',s:s.id});S.stack=stack;save();render()}},
+  'del-s':()=>{const s=getS(cur().s);if(!confirm(`Delete the survey "${s.nala}" and all its sections? This cannot be undone.`))return;S.surveys=S.surveys.filter(x=>x!==s);stack=[{v:'home'}];S.stack=stack;save();render()},
+  'add-ex':()=>{S.surveys.push(example());save();render()},
+  'new-l':el=>go({v:'eline',s:cur().s,t:el.dataset.t}),
+  'open-l':el=>go({v:'line',s:cur().s,l:el.dataset.id}),
+  'edit-l':()=>go({v:'eline',s:cur().s,l:cur().l}),
+  'save-l':el=>{const n=cur(),s=getS(n.s);const name=$('#fName').value.trim()||'Section';const ch=numOr($('#fCh').value,0),rl=numOr($('#fRL').value,100),hi=numOr($('#fHi').value,S.settings.hi);
+    const tie=$('#fTie')?$('#fTie').checked:false;const startLab=$('#fStart').value.trim()||'Start';
+    if(n.l){const l=s.lines.find(x=>x.id===n.l);Object.assign(l,{name,ch,startRL:rl,hi,tie});const p0=l.pts.find(p=>p.start);if(p0)p0.label=startLab;save();uiBack()}
+    else{const p0=mkPt({label:startLab,start:true});const l={id:uid(),type:el.dataset.t,name,ch,startRL:rl,tie,hi,setup:p0.id,gps:null,pts:[p0]};s.lines.push(l);S.settings.hi=hi;save();stack.pop();stack.push({v:'line',s:s.id,l:l.id});S.stack=stack;save();render()}},
+  'del-l':()=>{const n=cur(),s=getS(n.s),l=s.lines.find(x=>x.id===n.l);if(!confirm(`Delete ${l.name} and its ${l.pts.length} points?`))return;s.lines=s.lines.filter(x=>x!==l);save();uiBack(2)},
+  'new-p':()=>go({v:'point',s:cur().s,l:cur().l}),
+  'open-p':el=>go({v:'point',s:cur().s,l:cur().l,p:el.dataset.id}),
+  lab:el=>{draft.label=el.dataset.v;render()},
+  pmode:el=>{draft.mode=el.dataset.v;render()},
+  pdir:el=>{draft.dir=+el.dataset.v;render()},
+  pm:()=>{const v=num(draft.aTxt);if(Number.isFinite(v)){draft.aTxt=(-v).toFixed(2);draft.ang=-v;draft.raw=null;draft.sd=null;draft.n=0;draft.cal=0}else{draft.aTxt=draft.aTxt.startsWith('-')?draft.aTxt.slice(1):'-'+draft.aTxt}render()},
+  sight:()=>{openSight({hint:`Put the crosshair on the target mark (${draft.ht} m)`,d:draft.dTxt,onDone:r=>{draft.ang=r.ang;draft.raw=r.raw;draft.cal=r.cal;draft.sd=r.sd;draft.n=r.n;draft.aTxt=r.ang.toFixed(2);render()}})},
+  'save-p':el=>{const n=cur(),s=getS(n.s),l=s.lines.find(x=>x.id===n.l),d=draft;
+    if(!d.start){const dd=num(d.dTxt);if(!(dd>0)){toast('Enter the taped distance');return}
+      if(!Number.isFinite(d.ang)){toast('Sight the target or type the angle');return}
+      if(!l.pts.find(p=>p.id===d.st)){toast('Choose where the instrument is');return}
+      d.d=dd;d.hi=numOr(d.hi,1.5);d.ht=numOr(d.ht,d.hi);d.label=(d.label||'').trim()||'Point'}
+    const clean={};Object.keys(d).forEach(k=>{if(k[0]!=='_'&&k!=='dTxt'&&k!=='aTxt')clean[k]=d[k]});
+    if(d._new)l.pts.push(clean);else{const i=l.pts.findIndex(p=>p.id===d.id);l.pts[i]=clean}
+    if(d._move&&!d.start){l.setup=d.id;toast('Instrument moved to '+clean.label)}
+    save();
+    if(el.dataset.next){draft=null;const k=stack.pop();stack.push({v:'point',s:k.s,l:k.l});S.stack=stack;render();window.scrollTo(0,0);toast('Saved '+clean.label)}
+    else uiBack()},
+  'del-p':()=>{const n=cur(),s=getS(n.s),l=s.lines.find(x=>x.id===n.l);const p=draft;
+    if(l.pts.some(q=>q.st===p.id)){toast('Other points were sighted from this one. Delete or move those first.');return}
+    if(!confirm('Delete '+p.label+'?'))return;l.pts=l.pts.filter(q=>q.id!==p.id);if(l.setup===p.id)l.setup=l.pts[0].id;save();uiBack()},
+  'gps-l':()=>{const n=cur(),l=getS(n.s).lines.find(x=>x.id===n.l);startGps(g=>{l.gps=g;save();render();toast('Location saved ±'+Math.round(g.acc)+' m')})},
+  'gps-p':()=>startGps(g=>{draft.gps=g;render();toast('Location captured ±'+Math.round(g.acc)+' m. Save the point to keep it.')}),
+  'gps-ok':()=>stopGps(true),'gps-x':()=>stopGps(false),
+  cal:()=>{calD={t1:null,t2:null};go({v:'cal'})},
+  help:()=>go({v:'help'}),
+  'cal-mode':el=>{S.settings.mode=el.dataset.v;calD={t1:null,t2:null};save();render()},
+  'cal-read':el=>{const k=el.dataset.k;openSight({raw:true,hint:k==='t1'?'Step 1: at pole A, aim at the mark on pole B':'Step 2: at pole B, aim at the mark on pole A',onDone:r=>{calD[k]=r;render()}})},
+  'cal-save':()=>{const st=S.settings,m=st.mode;const c=(calD.t1.raw+calD.t2.raw)/2,sl=(calD.t1.raw-calD.t2.raw)/2;st.cal[m]=c;st.calDate[m]=today();(st.calLog=st.calLog||[]).push({mode:m,date:today(),c,sl});save();calD={t1:null,t2:null};render();toast('Offset saved: '+fmtAng(c))},
+  'save-sig':()=>{const v=num($('#fSig').value);if(v>0&&v<5){S.settings.sigma=v;save();toast('Updated')}else toast('Enter a value between 0 and 5')},
+  exp:()=>go({v:'exp',s:cur().s}),
+  'x-sum':()=>{const s=getS(cur().s);download(new Blob([toCSV(sumRows(s))],{type:'text/csv'}),base(s)+'_summary.csv')},
+  'x-pts':()=>{const s=getS(cur().s);download(new Blob([toCSV(ptRows(s))],{type:'text/csv'}),base(s)+'_points.csv')},
+  'x-png-banks':()=>{const s=getS(cur().s);const sv=plotBanks(summary(s),LIGHT,`${s.nala}, ${s.village}: bank heights above bed`);if(sv)svgToPng(sv,base(s)+'_bank_heights.png');else toast('No sections with both banks yet')},
+  'x-png-ls':()=>{const s=getS(cur().s);svgToPng(plotLS(s,LIGHT,`${s.nala}, ${s.village}: L-section`),base(s)+'_L-section.png')},
+  'x-png-all':()=>{const s=getS(cur().s);let k=0;s.lines.filter(l=>l.type==='CS').forEach(l=>{const sv=plotCS(lineResults(s,l),LIGHT,`${s.nala}, ${s.village}: ${l.name} at ch ${f(l.ch,1)} m`);if(sv){setTimeout(()=>svgToPng(sv,base(s)+'_'+l.name.replace(/\W+/g,'')+'.png'),k*700);k++}});if(!k)toast('No drawings yet')},
+  'png-l':()=>{const n=cur(),s=getS(n.s),l=s.lines.find(x=>x.id===n.l);const sv=l.type==='CS'?plotCS(lineResults(s,l),LIGHT,`${s.nala}, ${s.village}: ${l.name} at ch ${f(l.ch,1)} m`):plotLS(s,LIGHT,`${s.nala}, ${s.village}: ${l.name}`);if(sv)svgToPng(sv,base(s)+'_'+l.name.replace(/\W+/g,'')+'.png');else toast('Not enough points to draw yet')},
+  'x-kml':()=>{const s=getS(cur().s);download(new Blob([kml(s)],{type:'application/vnd.google-earth.kml+xml'}),base(s)+'.kml')},
+  'x-json':()=>{const s=getS(cur().s);download(new Blob([JSON.stringify({app:'nala-phone-level',v:1,surveys:[s]},null,1)],{type:'application/json'}),base(s)+'_backup.json')},
+  'x-share':()=>{const s=getS(cur().s);navigator.share({title:s.nala,text:shareText(s)}).catch(()=>{})},
+  imp:()=>$('#impFile').click(),
+  zoom:el=>setZoom(+el.dataset.z),
+  's-mode':()=>{S.settings.mode=S.settings.mode==='cam'?'edge':'cam';save();$('#sMode').textContent=S.settings.mode==='cam'?'Use top edge':'Use camera';sens.buf=[];startCam();if(!sOpt.raw&&!S.settings.calDate[S.settings.mode])$('#sMsg').textContent='This sighting method is not calibrated yet.'},
+  's-cancel':()=>history.back(),
+  's-read':()=>sightRead(),
+  's-again':()=>{sRes=null;$('#sRes').hidden=true;$('#sAct').hidden=false},
+  's-use':()=>{const r=sRes,o=sOpt;history.back();if(r&&o&&o.onDone)setTimeout(()=>o.onDone(r),30)},
+};
+document.addEventListener('click',e=>{const el=e.target.closest('[data-a]');if(!el)return;const fn=A[el.dataset.a];if(fn){e.preventDefault();fn(el)}});
+document.addEventListener('input',e=>{const el=e.target;if(!draft||!el.dataset||!el.dataset.f)return;const k=el.dataset.f;
+  if(el.type==='checkbox'){draft[k]=el.checked;return}
+  draft[k]=el.value;
+  if(k==='aTxt'){const v=num(el.value);draft.ang=v;draft.raw=null;draft.sd=null;draft.n=0;draft.cal=0;const pa=$('#pAng');if(pa)pa.textContent=fmtAng(v);schedule()}
+  if(k==='dTxt'||k==='hi'||k==='ht')schedule()});
+document.addEventListener('change',e=>{const el=e.target;
+  if(el.id==='selSetup'){const n=cur(),l=getS(n.s).lines.find(x=>x.id===n.l);l.setup=el.value;save();render();toast('Instrument moved')}
+  else if(el.id==='pSt'&&draft){draft.st=el.value;render()}
+  else if(el.dataset&&el.dataset.f==='hi'&&draft){const v=num(el.value);
+    // keep the target mark at the same height as the instrument unless it was set differently
+    if(Number.isFinite(v)&&num(draft.ht)===num(draft._prevHi)){draft.ht=v;const t=document.querySelector('[data-f="ht"]');if(t)t.value=v}
+    if(Number.isFinite(v))draft._prevHi=v;schedule()}});
+let sch=0;function schedule(){clearTimeout(sch);sch=setTimeout(()=>{const n=cur();if(n.v!=='point'||!draft)return;const s=getS(n.s),l=s&&s.lines.find(x=>x.id===n.l);const box=$('#pPrev');if(l&&box)box.innerHTML=previewHtml(s,l,draft)},250)}
+$('#impFile').addEventListener('change',e=>{const file=e.target.files[0];if(!file)return;const rd=new FileReader();
+  rd.onload=()=>{try{const o=JSON.parse(rd.result);const list=o.surveys||(o.lines?[o]:[]);if(!list.length)throw 0;let k=0;
+    list.forEach(s=>{if(!s.lines)return;if(S.surveys.some(x=>x.id===s.id))s.id=uid();S.surveys.push(s);k++});save();render();toast(`Restored ${k} survey${k===1?'':'s'}`)}catch(err){toast('This file is not a Nala Phone Level backup')}
+    e.target.value=''};rd.readAsText(file)});
+history.replaceState({n:0},'');
+render();
+// offline use: cache the app on the phone after the first visit
+if('serviceWorker' in navigator&&location.protocol==='https:'){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}
+</script>
+</body>
+</html>
